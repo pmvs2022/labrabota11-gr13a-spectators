@@ -53,8 +53,16 @@ public class Details extends BaseActivity {
         } else if (day.getMode() == Day.PRESENCE_BANDS) {
             if (extras.containsKey("bands") && extras.containsKey("totalBands") && extras.containsKey("voters") && extras.containsKey("totalVoters")) {
                 universalPagerAdapter = new UniversalPagerAdapter(this, getSupportFragmentManager(),
-                        new Fragment[]{new GraphsFragment(day.getName() + getString(R.string.voters_suffix)), new ListFragment((ArrayList<Voter>) ((ObjectWrapperForBinder) extras.getBinder("voters")).getData(), extras.getInt("totalVoters")), new GraphsFragment(day.getName() + getString(R.string.bands_suffix)), new ListFragment((ArrayList<Voter>) ((ObjectWrapperForBinder) extras.getBinder("bands")).getData(), extras.getInt("totalBands"))},
-                        new String[]{getString(R.string.graphs) + "\n" + getString(R.string.voters), getString(R.string.list) + "\n" + getString(R.string.voters), getString(R.string.graphs) + "\n" + getString(R.string.bands), getString(R.string.list) + "\n" + getString(R.string.bands)}, fragmentExtras);
+                        new Fragment[] {new GraphsFragment(day.getName() + getString(R.string.voters_suffix)),
+                                new ListFragment((ArrayList<Voter>) ((ObjectWrapperForBinder) extras.getBinder("voters")).getData(),
+                                        extras.getInt("totalVoters")), new GraphsFragment(day.getName() + getString(R.string.bands_suffix)),
+                                new ListFragment((ArrayList<Voter>) ((ObjectWrapperForBinder) extras.getBinder("bands")).getData(), extras.getInt("totalBands"))},
+                        new String[] {getString(R.string.graphs) + "\n"
+                                + getString(R.string.voters), getString(R.string.list) + "\n"
+                                + getString(R.string.voters), getString(R.string.graphs) + "\n"
+                                + getString(R.string.bands), getString(R.string.list) + "\n"
+                                + getString(R.string.bands)}, fragmentExtras);
+
             } else Log.e("Details", "No voters and bands key in extras, Mode: " + day.getMode());
         }
 
