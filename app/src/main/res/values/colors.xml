@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#000000</color>
+    <color name="hintWhite">#99000000</color>
+    <color name="colorPrimaryDark">#616161</color>
+    <color name="colorAccentDark">#FF2f80ed</color>
+    <color name="colorBackgroundDark">#EEEEEE</color>
+    <color name="colorButtonDark">#CCEEEEEE</color>
+    <color name="list">#AAAAAA</color>
+</resources>
