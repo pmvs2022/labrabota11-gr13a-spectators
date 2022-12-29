@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "657065860539",
+    "project_id": "spectator-c239f",
+    "storage_bucket": "spectator-c239f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:657065860539:android:9faf3340f7f617c8c5389e",
+        "android_client_info": {
+          "package_name": "com.spectator"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "657065860539-7oc1v9r8ipd5u7koe2iisnvdu2avbdbc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDr4pOYgD0nXVFkAO6_xe9YA9Tbe1uYQmE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "657065860539-7oc1v9r8ipd5u7koe2iisnvdu2avbdbc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
