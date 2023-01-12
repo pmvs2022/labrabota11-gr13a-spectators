@@ -11,13 +11,17 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.spectator.data.Voter;
 import com.spectator.realm.Task;
 import com.spectator.realm.TaskStatus;
+import com.spectator.utils.DateFormatter;
 import com.spectator.utils.PreferencesIO;
 
 import org.bson.types.ObjectId;
 
+import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
@@ -25,6 +29,7 @@ import java.util.concurrent.FutureTask;
 import io.realm.OrderedCollectionChangeSet;
 import io.realm.OrderedRealmCollectionChangeListener;
 import io.realm.Realm;
+import io.realm.RealmConfiguration;
 import io.realm.RealmResults;
 import io.realm.mongodb.App;
 import io.realm.mongodb.AppConfiguration;
@@ -48,22 +53,35 @@ public class BaseActivity extends AppCompatActivity {
                 .build());
         Credentials credentials = Credentials.anonymous();
 
+        String partitionValue = "Counter";
         app.loginAsync(credentials, result -> {
             if (result.isSuccess()) {
                 Log.v("QUICKSTART", "Successfully authenticated anonymously.");
                 User user = app.currentUser();
-                String partitionValue = "Counter";
                 SyncConfiguration config = new SyncConfiguration.Builder(
                         user,
                         partitionValue)
                         .build();
                 Realm uiThreadRealm = Realm.getInstance(config);
+
+                uiThreadRealm.executeTransaction(r -> {
+                    Voter voter = r.createObject(Voter.class, new ObjectId());
+                    voter.setTimestamp(System.currentTimeMillis());
+                    voter.setFormattedDate(
+                            DateFormatter.formatDateDefaultPattern(System.currentTimeMillis()));
+                    voter.setFormattedTime(
+                            DateFormatter.formatTimeDefaultPattern(System.currentTimeMillis()));
+                    voter.setCount(1);
+                    r.insertOrUpdate(voter);
+                });
+
+                uiThreadRealm.close();
             } else {
                 Log.e("QUICKSTART", "Failed to log in. Error: " + result.getError());
             }
         });
 
-        /*SyncConfiguration config = new SyncConfiguration.Builder(app.currentUser(), parti)
+        /*SyncConfiguration config = new SyncConfiguration.Builder(Objects.requireNonNull(app.currentUser()), partitionValue)
                 .allowQueriesOnUiThread(true)
                 .allowWritesOnUiThread(true)
                 .build();

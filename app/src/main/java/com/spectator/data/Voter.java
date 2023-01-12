@@ -5,7 +5,9 @@ import com.spectator.utils.DateFormatter;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Voter implements JsonObjectConvertable {
+import io.realm.RealmObject;
+
+public class Voter extends RealmObject implements JsonObjectConvertable {
 
     public static final String ARRAY_KEY = "voters";
     public static final String timestampKey = "timestamp";
@@ -25,6 +27,24 @@ public class Voter implements JsonObjectConvertable {
         this.timestamp = timestamp;
         this.formattedDate = DateFormatter.formatDateDefaultPattern(timestamp);
         this.formattedTime = DateFormatter.formatTimeDefaultPattern(timestamp);
+        this.count = count;
+    }
+
+    public Voter() {}
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public void setFormattedDate(String formattedDate) {
+        this.formattedDate = formattedDate;
+    }
+
+    public void setFormattedTime(String formattedTime) {
+        this.formattedTime = formattedTime;
+    }
+
+    public void setCount(int count) {
         this.count = count;
     }
 
