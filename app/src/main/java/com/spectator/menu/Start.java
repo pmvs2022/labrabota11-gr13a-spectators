@@ -13,12 +13,24 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.spectator.BaseActivity;
 import com.spectator.R;
+import com.spectator.data.Voter;
 import com.spectator.utils.PreferencesIO;
+
+import org.bson.types.ObjectId;
 
 import java.util.Locale;
 
+import io.realm.Realm;
+import io.realm.RealmResults;
+import io.realm.mongodb.App;
+import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.Credentials;
+import io.realm.mongodb.User;
+import io.realm.mongodb.sync.SyncConfiguration;
+
 public class Start extends BaseActivity {
 
+    public static App app;
     private TextView start;
     private TextView settings;
     private TextView aboutUs;
@@ -29,6 +41,8 @@ public class Start extends BaseActivity {
         Log.e("Start", "onCreate");
         setContentView(R.layout.start);
 
+        Realm.init(this);
+
         start = (TextView) findViewById(R.id.start);
         settings = (TextView) findViewById(R.id.settings);
         aboutUs = (TextView) findViewById(R.id.about_us);
@@ -37,6 +51,46 @@ public class Start extends BaseActivity {
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                com.spectator.realm.Realm realm = new com.spectator.realm.Realm(com.spectator.realm.Realm.appID);
+                realm.login(com.spectator.realm.Realm.credentials);
+                /*String appID = "counter-guimd";
+                App app = new App(new AppConfiguration.Builder(appID)
+                        .build());
+
+                Credentials credentials = Credentials.anonymous();
+
+                app.loginAsync(credentials, result -> {
+                    if (result.isSuccess()) {
+                        Log.v("QUICKSTART", "Successfully authenticated anonymously.");
+                        User user = app.currentUser();
+                        // interact with realm using your user object here
+                    } else {
+                        Log.e("QUICKSTART", "Failed to log in. Error: " + result.getError());
+                    }
+                });
+
+                User user = app.currentUser();
+                SyncConfiguration config = new SyncConfiguration.Builder(user, "counter")
+                        .allowQueriesOnUiThread(true)
+                        .allowWritesOnUiThread(true)
+                        .build();
+                Realm.getInstanceAsync(config, new Realm.Callback() {
+                    @Override
+                    public void onSuccess(Realm realm) {
+                        Log.v("EXAMPLE", "Successfully opened a realm.");
+                        // Read all tasks in the realm. No special syntax required for synced realms.
+                        RealmResults<Voter> voters = realm.where(Voter.class).findAll();
+                        // Write to the realm. No special syntax required for synced realms.
+                        realm.executeTransaction(r -> {
+                            r.insert(new Voter(new ObjectId(), System.currentTimeMillis(), 1));
+                        });
+
+                        Log.v("READ", voters.asJSON());
+                        // Don't forget to close your realm!
+                        realm.close();
+                    }
+                });*/
+
                 Intent intentStart = new Intent(getApplicationContext(), Menu.class);
                 startActivity(intentStart);
             }
@@ -100,6 +154,6 @@ public class Start extends BaseActivity {
         super.onRestart();
         Log.e("Start", "onRestart");
         //Bodge, but otherwise sometimes doesn't change language; and on old version doesn't change night mode
-            recreate();
+        recreate();
     }
 }
