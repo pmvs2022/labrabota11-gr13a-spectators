@@ -20,9 +20,9 @@ public class Day implements JsonObjectConvertable, Serializable {
     private int bands;
     private int mode;
 
-    public static final int PRESENCE = 0;
-    public static final int BANDS = 1;
-    public static final int PRESENCE_BANDS = 2;
+    public static final int PRESENCE = 1;
+    public static final int BANDS = 2;
+    public static final int PRESENCE_BANDS = PRESENCE | BANDS;
 
     @IntDef({PRESENCE, BANDS, PRESENCE_BANDS})
     @Retention(RetentionPolicy.SOURCE)
@@ -109,13 +109,13 @@ public class Day implements JsonObjectConvertable, Serializable {
     }
 
     public Day getDayWithChanged(int number, @Position int position) {
-        if (position == 0) {
+        if (position == PRESENCE) {
             return getDayChanged(number, this.bands);
-        }
-        if (position == 1) {
+        } else if (position == BANDS) {
             return getDayChanged(this.voters, number);
+        } else {
+            throw new IllegalArgumentException("Wrong position value: " + position);
         }
-        return null;
     }
 
     @Override
@@ -135,14 +135,14 @@ public class Day implements JsonObjectConvertable, Serializable {
     }
 
     public String getStringNumbers() {
-        if (this.mode == PRESENCE) {
-            return String.valueOf(this.voters);
+        if (mode == PRESENCE) {
+            return String.valueOf(voters);
         }
-        else if (this.mode == BANDS) {
-            return String.valueOf(this.bands);
+        else if (mode == BANDS) {
+            return String.valueOf(bands);
         }
-        else if (this.mode == PRESENCE_BANDS) {
-            return this.voters + "/" + this.bands;
+        else if (mode == PRESENCE_BANDS) {
+            return voters + "/" + bands;
         }
         return null;
     }

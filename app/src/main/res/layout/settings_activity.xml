@@ -252,7 +252,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:gravity="center"
-        android:text="@string/copyright_2020_npavel_sudnik_nrichard_ragusski_nv1_0"
+        android:text="@string/copyright"
         android:textColor="@color/white"
         android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="parent"

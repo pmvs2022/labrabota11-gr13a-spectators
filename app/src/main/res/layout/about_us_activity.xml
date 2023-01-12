@@ -67,7 +67,7 @@
         android:layout_marginEnd="10dp"
         android:layout_marginBottom="10dp"
         android:gravity="center"
-        android:text="@string/if_you_have_spotted_a_bug_or_you_want_to_propose_new_idea_please_contact_us_at_wintry3_gmail_com"
+        android:text="@string/bug_contact"
         android:textColor="@color/white"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"

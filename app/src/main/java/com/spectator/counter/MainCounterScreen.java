@@ -42,29 +42,31 @@ public class MainCounterScreen extends BaseActivity {
     private static final int EDIT_YIK_REQUEST = 11;
     private static final int CREATE_COMMENT_REQUEST = 12;
 
-    private PreferencesIO preferencesIO;
     private TextView voteButtonMain;
     private TextView voteButtonSecond;
     private LinearLayout deleteLastButtonMain;
     private LinearLayout deleteLastButtonSecond;
     private LinearLayout commentButton;
     private TextView yikNumber;
-    private int totallyVoters = 0;
-    private int totallyBands = 0;
-    private Numbers votersNumbers;
-    private Numbers bandsNumbers;
     private VerticalViewPager viewPager;
     private DailyInfoFragment dailyInfoFragment;
     private AdditionalInfoFragment additionalInfoFragment;
+
+    private Numbers votersNumbers = new Numbers();
+    private Numbers bandsNumbers = new Numbers();
     private Day day;
+
+    private PreferencesIO preferencesIO;
     private JsonIO votersJsonIO;
     private JsonIO bandsJsonIO;
     private JsonIO hourlyVotersJsonIO;
     private JsonIO hourlyBandsJsonIO;
     private JsonIO daysJsonIO;
     private JsonIO commentsJsonIO;
+
     private ArrayList<Voter> voters;
     private ArrayList<Voter> bands;
+
     private Handler hourlyCheckHandler;
     private boolean isHourlyCheckRunning;
     private boolean isBandsAndVotersConnected;
@@ -78,37 +80,36 @@ public class MainCounterScreen extends BaseActivity {
         Bundle extras = getIntent().getExtras();
         if (extras == null) {
             Log.e("MainExtras", "null");
+            extras = new Bundle();
             day = new Day((String) Day.defValues[0], (String) Day.defValues[1], (String) Day.defValues[2], (int) Day.defValues[3], (int) Day.defValues[4], (int) Day.defValues[5]);
-            totallyVoters = 0;
-            totallyBands = 0;
             daysJsonIO = new JsonIO(this.getFilesDir(), Day.DAYS_PATH, Day.ARRAY_KEY, true);
         }
         else {
             Log.i("MainExtras", "not null");
-            totallyVoters = extras.getInt("totalVoters");
-            totallyBands = extras.getInt("totalBands");
             day = (Day) extras.getSerializable("day");
             daysJsonIO = (JsonIO) ((ObjectWrapperForBinder)extras.getBinder("daysJsonIO")).getData();
         }
 
         //Must not trigger
-        if (day == null)
+        if (day == null) {
             day = new Day((String) Day.defValues[0], (String) Day.defValues[1], (String) Day.defValues[2], (int) Day.defValues[3], (int) Day.defValues[4], (int) Day.defValues[5]);
-        Log.i("MainDay", day.toString());
+            Log.e("Counter", "No day provided");
+        }
+        Log.i("Counter", day.toString());
 
         //Init voters and bands variables, setting view
         if (day.getMode() == Day.PRESENCE) {
             setContentView(R.layout.main_counter2);
-            initVoters();
+            initVoters(votersNumbers, extras.getInt("totalVoters", 0));
         }
         else if (day.getMode() == Day.BANDS) {
             setContentView(R.layout.main_counter2);
-            initBands();
+            initBands(bandsNumbers, extras.getInt("totalBands", 0));
         }
         else if (day.getMode() == Day.PRESENCE_BANDS) {
             setContentView(R.layout.joint_main_counter);
-            initVoters();
-            initBands();
+            initVoters(votersNumbers, extras.getInt("totalVoters", 0));
+            initBands(bandsNumbers, extras.getInt("totalBands", 0));
 
             voteButtonSecond = (TextView) findViewById(R.id.count_ribbons);
             deleteLastButtonSecond = (LinearLayout) findViewById(R.id.delete_ribbon_button);
@@ -121,12 +122,9 @@ public class MainCounterScreen extends BaseActivity {
         deleteLastButtonMain = (LinearLayout) findViewById(R.id.delete_button);
         commentButton = (LinearLayout) findViewById(R.id.mark_button);
 
-        LinearLayout info = (LinearLayout) findViewById(R.id.info_button);
-        LinearLayout done = (LinearLayout) findViewById(R.id.finish_button);
-        ImageView doneIcon = (ImageView) findViewById(R.id.finish_icon);
-        TextView doneLabel = (TextView) findViewById(R.id.finish_label);
-        ImageView infoIcon = (ImageView) findViewById(R.id.info_icon);
-        TextView infoLabel = (TextView) findViewById(R.id.info_label);
+        //Creating fragments for voters numbers and view pager
+        viewPager = findViewById(R.id.pager);
+        initPager();
 
         //Yik number initialization
         yikNumber = (TextView) findViewById(R.id.precinct_id);
@@ -145,99 +143,88 @@ public class MainCounterScreen extends BaseActivity {
         //Creating JsonIO for comments writing
         commentsJsonIO = new JsonIO(getFilesDir(), Comment.COMMENTS_PATH, Comment.ARRAY_KEY, JsonIO.MODE.WRITE_ONLY_EOF, false);
 
-        //Creating fragments for voters numbers and view pager
-        viewPager = findViewById(R.id.pager);
-        initPager();
-
         //Timer for checking votes those are one hour old
         hourlyCheckHandler = new Handler() {
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 if (isHourlyCheckRunning) {
-
-                    if (day.getMode() == Day.PRESENCE_BANDS) {
+                    if ((day.getMode() & Day.PRESENCE) > 0) {
                         checkVotesHourly(voters, votersNumbers);
+                    }
+                    if ((day.getMode() & Day.BANDS) > 0) {
                         checkVotesHourly(bands, bandsNumbers);
-                        additionalInfoFragment.setHourly(votersNumbers.hourly, Day.PRESENCE);
-                        additionalInfoFragment.setHourly(bandsNumbers.hourly, Day.BANDS);
                     }
-                    else if (day.getMode() == Day.PRESENCE) {
-                        checkVotesHourly(voters, votersNumbers);
-                        additionalInfoFragment.setHourly(votersNumbers.hourly, Day.PRESENCE);
-                    }
-                    else if (day.getMode() == Day.BANDS) {
-                        checkVotesHourly(bands, bandsNumbers);
-                        additionalInfoFragment.setHourly(bandsNumbers.hourly, Day.BANDS);
-                    }
-
                     hourlyCheckHandler.sendEmptyMessageDelayed(0, 60000);
                 }
             }
         };
 
         //Setting onClick for main add button (for ribbons if count only ribbons; for voters if count only voters or both)
-        voteButtonMain.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-
-                doVibration();
-
-                if (day.getMode() == Day.PRESENCE || day.getMode() == Day.PRESENCE_BANDS) {
-                    onAddRecord(voters, votersJsonIO, hourlyVotersJsonIO, votersNumbers, Day.PRESENCE);
-                }
-                else if (day.getMode() == Day.BANDS) {
-                    onAddRecord(bands, bandsJsonIO, hourlyBandsJsonIO, bandsNumbers, Day.BANDS);
-                }
-
+        voteButtonMain.setOnClickListener(view -> {
+            doVibration();
+            if (day.getMode() == Day.PRESENCE || day.getMode() == Day.PRESENCE_BANDS) {
+                onAddRecord(voters, votersJsonIO, hourlyVotersJsonIO, votersNumbers, Day.PRESENCE);
             }
-
+            else if (day.getMode() == Day.BANDS) {
+                onAddRecord(bands, bandsJsonIO, hourlyBandsJsonIO, bandsNumbers, Day.BANDS);
+            }
         });
 
         //Setting onClick for main delete button (for ribbons if count only ribbons; for voters if count only voters or both)
-        deleteLastButtonMain.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                doDeleteVibration();
-                if (day.getMode() == Day.PRESENCE || day.getMode() == Day.PRESENCE_BANDS) {
-                    onDeleteLastRecord(voters, votersJsonIO, hourlyVotersJsonIO, votersNumbers, Day.PRESENCE);
-                }
-                else if (day.getMode() == Day.BANDS) {
-                    onDeleteLastRecord(bands, bandsJsonIO, hourlyBandsJsonIO, bandsNumbers, Day.BANDS);
-                }
+        deleteLastButtonMain.setOnClickListener(view -> {
+            doDeleteVibration();
+            if (day.getMode() == Day.PRESENCE || day.getMode() == Day.PRESENCE_BANDS) {
+                onDeleteLastRecord(voters, votersJsonIO, hourlyVotersJsonIO, votersNumbers, Day.PRESENCE);
+            }
+            else if (day.getMode() == Day.BANDS) {
+                onDeleteLastRecord(bands, bandsJsonIO, hourlyBandsJsonIO, bandsNumbers, Day.BANDS);
             }
         });
 
         //Setting onClick for secondary buttons (for ribbons) if count both
         if (day.getMode() == Day.PRESENCE_BANDS) {
-
-            voteButtonSecond.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-
-                    doVibration();
-                    onAddRecord(bands, bandsJsonIO, hourlyBandsJsonIO, bandsNumbers, Day.BANDS);
-                    if (isBandsAndVotersConnected) {
-                        onAddRecord(voters, votersJsonIO, hourlyVotersJsonIO, votersNumbers, Day.PRESENCE);
-                    }
+            voteButtonSecond.setOnClickListener(view -> {
+                doVibration();
+                onAddRecord(bands, bandsJsonIO, hourlyBandsJsonIO, bandsNumbers, Day.BANDS);
+                if (isBandsAndVotersConnected) {
+                    onAddRecord(voters, votersJsonIO, hourlyVotersJsonIO, votersNumbers, Day.PRESENCE);
                 }
             });
 
-            deleteLastButtonSecond.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    doDeleteVibration();
-                    if (voters.size() > 0 && bands.size() > 0 && isBandsAndVotersConnected) {
-                        Voter bandToBeDeleted = bands.get(bands.size() - 1);
-                        onDeleteConnectedRecord(bandToBeDeleted, voters, votersJsonIO, hourlyVotersJsonIO, votersNumbers, Day.PRESENCE);
-                    }
-                    onDeleteLastRecord(bands, bandsJsonIO, hourlyBandsJsonIO, bandsNumbers, Day.BANDS);
-
+            deleteLastButtonSecond.setOnClickListener(view -> {
+                doDeleteVibration();
+                if (voters.size() > 0 && bands.size() > 0 && isBandsAndVotersConnected) {
+                    Voter bandToBeDeleted = bands.get(bands.size() - 1);
+                    onDeleteConnectedRecord(bandToBeDeleted, voters, votersJsonIO, hourlyVotersJsonIO, votersNumbers, Day.PRESENCE);
                 }
+                onDeleteLastRecord(bands, bandsJsonIO, hourlyBandsJsonIO, bandsNumbers, Day.BANDS);
             });
         }
 
+        // Add dialogs for editing yik number and adding comments
+        setUpCommentAndYikEditDialogs();
+
+        LinearLayout info = (LinearLayout) findViewById(R.id.info_button);
+        LinearLayout done = (LinearLayout) findViewById(R.id.finish_button);
+        ImageView doneIcon = (ImageView) findViewById(R.id.finish_icon);
+        TextView doneLabel = (TextView) findViewById(R.id.finish_label);
+        ImageView infoIcon = (ImageView) findViewById(R.id.info_icon);
+        TextView infoLabel = (TextView) findViewById(R.id.info_label);
+
+        //On info click goes to Details (Graphs and list)
+        View.OnClickListener infoListener = view -> onInfoClick();
+        info.setOnClickListener(infoListener);
+        infoIcon.setOnClickListener(infoListener);
+        infoLabel.setOnClickListener(infoListener);
+
+        //On done click goes to menu
+        View.OnClickListener doneListener = view -> onDoneClick();
+        doneIcon.setOnClickListener(doneListener);
+        doneLabel.setOnClickListener(doneListener);
+        done.setOnClickListener(doneListener);
+    }
+
+    private void setUpCommentAndYikEditDialogs() {
         //Write comment function (see OnActivityResult)
         commentButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -265,29 +252,6 @@ public class MainCounterScreen extends BaseActivity {
                 startActivityForResult(intent, EDIT_YIK_REQUEST);
             }
         });
-
-        //On info click goes to Details (Graphs and list)
-        View.OnClickListener infoListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onInfoClick();
-            }
-        };
-        info.setOnClickListener(infoListener);
-        infoIcon.setOnClickListener(infoListener);
-        infoLabel.setOnClickListener(infoListener);
-
-        //On done click goes to menu
-        View.OnClickListener doneListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onDoneClick();
-            }
-        };
-        doneIcon.setOnClickListener(doneListener);
-        doneLabel.setOnClickListener(doneListener);
-        done.setOnClickListener(doneListener);
-
     }
 
     private void initPager() {
@@ -296,35 +260,25 @@ public class MainCounterScreen extends BaseActivity {
 
         Bundle fragmentBundle = new Bundle();
 
-        if (day.getMode() == Day.PRESENCE) {
+        if ((day.getMode() & Day.PRESENCE) > 0) {
+            dailyInfoFragment.bindNumbers(votersNumbers);
+            additionalInfoFragment.bindNumbers(votersNumbers);
             fragmentBundle.putStringArray("labels", new String[] {getString(R.string.voted_today), getString(R.string.last_hour), getString(R.string.grand_total)});
-            fragmentBundle.putInt("totally", votersNumbers.totally);
-            fragmentBundle.putInt("daily", votersNumbers.daily);
             //checking last hour votes. It's not really good because on startup it is performed twice (see onResume). But it's needed for fragments initialization
             checkVotesHourly(voters, votersNumbers);
-            fragmentBundle.putInt("hourly", votersNumbers.hourly);
         }
-        else if (day.getMode() == Day.BANDS) {
+        if ((day.getMode() & Day.BANDS) > 0) {
+            dailyInfoFragment.bindNumbers(bandsNumbers);
+            additionalInfoFragment.bindNumbers(bandsNumbers);
             fragmentBundle.putStringArray("labels", new String[] {getString(R.string.bands_today), getString(R.string.bands_last_hour), getString(R.string.bands_total)});
-            fragmentBundle.putInt("totally", bandsNumbers.totally);
-            fragmentBundle.putInt("daily", bandsNumbers.daily);
             checkVotesHourly(bands, bandsNumbers);
-            fragmentBundle.putInt("hourly", bandsNumbers.hourly);
-        }
-        else if (day.getMode() == Day.PRESENCE_BANDS) {
-            //fragmentBundle.putInt("totally", votersNumbers.totally);
-            fragmentBundle.putInt("daily", votersNumbers.daily);
-            checkVotesHourly(voters, votersNumbers);
-            fragmentBundle.putInt("hourly", votersNumbers.hourly);
-
-            //fragmentBundle.putInt("totally2", bandsNumbers.totally);
-            fragmentBundle.putInt("daily2", bandsNumbers.daily);
-            checkVotesHourly(bands, bandsNumbers);
-            fragmentBundle.putInt("hourly2", bandsNumbers.hourly);
         }
         fragmentBundle.putInt("mode", day.getMode());
 
-        UniversalPagerAdapter universalPagerAdapter = new UniversalPagerAdapter(this, getSupportFragmentManager(), new Fragment[] {dailyInfoFragment, additionalInfoFragment}, new String[] {getString(R.string.this_day), getString(R.string.other)}, fragmentBundle);
+        UniversalPagerAdapter universalPagerAdapter = new UniversalPagerAdapter(this, getSupportFragmentManager(),
+                new Fragment[] {dailyInfoFragment, additionalInfoFragment},
+                new String[] {getString(R.string.this_day), getString(R.string.other)},
+                fragmentBundle);
         viewPager.setAdapter(universalPagerAdapter);
     }
 
@@ -351,15 +305,11 @@ public class MainCounterScreen extends BaseActivity {
     private void delete(String formattedTime, ArrayList<Voter> records, JsonIO recordsJsonIO, JsonIO hourlyRecordsJsonIO, Numbers numbers, @Day.Position int position) {
 
         //Update number of votes in TextViews
-        if (numbers.hourly > 0) {
-            additionalInfoFragment.setHourly(--numbers.hourly, position);
-        }
-        dailyInfoFragment.setDaily(--numbers.daily, position);
-        additionalInfoFragment.setTotally(--numbers.totally);
+        numbers.changeAll(-1);
 
         //Updating this day voters number in file
         try {
-            day = day.getDayWithChanged(numbers.daily, position);
+            day = day.getDayWithChanged(numbers.getDaily(), position);
             daysJsonIO.replaceObject(day.toJSONObject(), Day.nameKey, day.getName(), Day.ARRAY_KEY);
         } catch (JsonIO.ObjectNotFoundException e) {
             e.printStackTrace();
@@ -386,8 +336,11 @@ public class MainCounterScreen extends BaseActivity {
     }
 
     private void onAddRecord(ArrayList<Voter> records, JsonIO recordsJsonIO, JsonIO hourlyRecordsJsonIO, Numbers numbers, @Day.Position int position) {
+        //Changing number of votes in TextViews
+        numbers.changeAll(1);
+
         //Creating new voter
-        Voter newVoter = new Voter(System.currentTimeMillis(), ++numbers.daily);
+        Voter newVoter = new Voter(System.currentTimeMillis(), numbers.getDaily());
         //Adding it to the list
         records.add(newVoter);
         //Writing new voter to the end of json file
@@ -395,15 +348,10 @@ public class MainCounterScreen extends BaseActivity {
 
         Realm.insertVoter(newVoter);
 
-        //Changing number of votes in TextViews
-        dailyInfoFragment.setDaily(numbers.daily, position);
-        additionalInfoFragment.setHourly(++numbers.hourly, position);
-        additionalInfoFragment.setTotally(++numbers.totally);
-
         //Updating this day voters number in file
         try {
-            day = day.getDayWithChanged(numbers.daily, position);
-            daysJsonIO.replaceObject(day.getDayWithChanged(numbers.daily, position).toJSONObject(), Day.nameKey, day.getName(), Day.ARRAY_KEY);
+            day = day.getDayWithChanged(numbers.getDaily(), position);
+            daysJsonIO.replaceObject(day.getDayWithChanged(numbers.getDaily(), position).toJSONObject(), Day.nameKey, day.getName(), Day.ARRAY_KEY);
         } catch (JsonIO.ObjectNotFoundException e) {
             e.printStackTrace();
         }
@@ -423,29 +371,29 @@ public class MainCounterScreen extends BaseActivity {
         }
     }
 
-    private void initVoters() {
+    private void initVoters(Numbers numbers, int totalCount) {
         String votersJsonPath = day.getName() + getString(R.string.voters_suffix) + getString(R.string.json_postfix);
         String hourlyVotersJsonPath = day.getName() + getString(R.string.voters_suffix) + getString(R.string.hourly_suffix) + getString(R.string.json_postfix);
         //Reading from file on startup, init daily votes number
         votersJsonIO = new JsonIO(this.getFilesDir(), votersJsonPath, Voter.ARRAY_KEY, true);
         voters = votersJsonIO.parseJsonArray(false, new ArrayList<Voter>(), true, Voter.ARRAY_KEY, Voter.class, Voter.constructorArgs, Voter.jsonKeys, null);
-        votersNumbers = new Numbers();
-        votersNumbers.daily = voters.size();
-        votersNumbers.totally = totallyVoters;
+
+        numbers.setTotal(totalCount);
+        numbers.setDaily(voters.size());
 
         //Creating jsonIO for further distributing voters by their hours
         hourlyVotersJsonIO = new JsonIO(this.getFilesDir(), hourlyVotersJsonPath, Hour.ARRAY_KEY, true);
     }
 
-    private void initBands() {
+    private void initBands(Numbers numbers, int totalCount) {
         String bandsJsonPath = day.getName() + getString(R.string.bands_suffix) + getString(R.string.json_postfix);
         String hourlyBandsJsonPath = day.getName() + getString(R.string.bands_suffix) + getString(R.string.hourly_suffix) + getString(R.string.json_postfix);
-        //Reading from file on startup, init daily votes number
+        //Reading from file on startup, init daily bands number
         bandsJsonIO = new JsonIO(this.getFilesDir(), bandsJsonPath, Voter.ARRAY_KEY, true);
         bands = bandsJsonIO.parseJsonArray(false, new ArrayList<Voter>(), true, Voter.ARRAY_KEY, Voter.class, Voter.constructorArgs, Voter.jsonKeys, null);
-        bandsNumbers = new Numbers();
-        bandsNumbers.daily = bands.size();
-        bandsNumbers.totally = totallyBands;
+
+        numbers.setTotal(totalCount);
+        numbers.setDaily(bands.size());
 
         //Creating jsonIO for further distributing voters by their hours
         hourlyBandsJsonIO = new JsonIO(this.getFilesDir(), hourlyBandsJsonPath, Hour.ARRAY_KEY, true);
@@ -453,6 +401,7 @@ public class MainCounterScreen extends BaseActivity {
 
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         switch (requestCode) {
             case EDIT_YIK_REQUEST: {
                 if (resultCode == RESULT_OK) {
@@ -489,23 +438,18 @@ public class MainCounterScreen extends BaseActivity {
     }
 
     private void onInfoClick() {
-        Intent intent = new Intent(getApplicationContext(), Details.class);
         Bundle bundle = new Bundle();
-        if (day.getMode() == Day.PRESENCE) {
-            bundle.putBinder("voters", new ObjectWrapperForBinder(voters));
-            bundle.putInt("totalVoters", votersNumbers.totally);
-        }
-        else if (day.getMode() == Day.BANDS) {
-            bundle.putBinder("bands", new ObjectWrapperForBinder(bands));
-            bundle.putInt("totalBands", bandsNumbers.totally);
-        }
-        else if (day.getMode() == Day.PRESENCE_BANDS) {
-            bundle.putBinder("voters", new ObjectWrapperForBinder(voters));
-            bundle.putBinder("bands", new ObjectWrapperForBinder(bands));
-            bundle.putInt("totalVoters", votersNumbers.totally);
-            bundle.putInt("totalBands", bandsNumbers.totally);
-        }
         bundle.putSerializable("day", day);
+        if ((day.getMode() & Day.PRESENCE) > 0) {
+            bundle.putBinder("voters", new ObjectWrapperForBinder(voters));
+            bundle.putInt("totalVoters", votersNumbers.getTotally());
+        }
+        if ((day.getMode() & Day.BANDS) > 0) {
+            bundle.putBinder("bands", new ObjectWrapperForBinder(bands));
+            bundle.putInt("totalBands", bandsNumbers.getTotally());
+        }
+
+        Intent intent = new Intent(getApplicationContext(), Details.class);
         intent.putExtras(bundle);
         startActivity(intent);
     }
@@ -520,27 +464,20 @@ public class MainCounterScreen extends BaseActivity {
             voteButtonMain.setText(R.string.end_voting);
             deleteLastButtonMain.setClickable(false);
 
-            if (day.getMode() == Day.PRESENCE_BANDS) {
-                votersNumbers.hourly = 0;
-                additionalInfoFragment.setHourly(votersNumbers.hourly, Day.PRESENCE);
-                bandsNumbers.hourly = 0;
-                additionalInfoFragment.setHourly(bandsNumbers.hourly, Day.BANDS);
-
+            if ((day.getMode() & Day.PRESENCE) > 0) {
+                votersNumbers.setHourly(0);
+            }
+            if ((day.getMode() & Day.BANDS) > 0) {
+                bandsNumbers.setHourly(0);
+            }
+            if ((day.getMode() & Day.PRESENCE_BANDS) > 0) {
                 voteButtonSecond.setClickable(false);
                 voteButtonSecond.setText(R.string.end_voting);
                 deleteLastButtonSecond.setClickable(false);
             }
-            else if (day.getMode() == Day.PRESENCE) {
-                votersNumbers.hourly = 0;
-                additionalInfoFragment.setHourly(votersNumbers.hourly, Day.PRESENCE);
-            }
-            else if (day.getMode() == Day.BANDS) {
-                bandsNumbers.hourly = 0;
-                additionalInfoFragment.setHourly(bandsNumbers.hourly, Day.BANDS);
-            }
+
             isHourlyCheckRunning = false;
             hourlyCheckHandler.removeMessages(0);
-
         }
         //Else checks hourly votes
         else {
@@ -558,89 +495,67 @@ public class MainCounterScreen extends BaseActivity {
         hourlyCheckHandler.removeMessages(0);
     }
 
-    //Checking how much votes made last hour
+    // Checking how much votes made last hour
     private void checkVotesHourly(ArrayList<Voter> records, Numbers numbers) {
         final long HOUR = 1000 * 60 * 60;
-        numbers.hourly = 0;
+        int lastHourCount = 0;
         Log.i("check", String.valueOf(records.size()));
+
+        long currentTime = System.currentTimeMillis();
         for (int i = records.size() - 1; i >= 0; i--) {
-            long currentTime = System.currentTimeMillis();
-            long difference =  currentTime - records.get(i).getTimestamp();
+            long difference = currentTime - records.get(i).getTimestamp();
             if (difference > 0 && difference < HOUR) {
-                numbers.hourly++;
-            }
-            else {
+                lastHourCount++;
+            } else {
                 break;
             }
         }
+
+        numbers.setHourly(lastHourCount);
     }
 
     private void doVibration() {
-        int vibeId = preferencesIO.getInt(PreferencesIO.VIBE_RADIOBUTTON_INDEX, 2);
+        final long[] durations = {500, 250, 100, 50, 0};
 
+        int vibeId = preferencesIO.getInt(PreferencesIO.VIBE_RADIOBUTTON_INDEX, 2);
         Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        if (vibe != null) {
-            switch (vibeId) {
-                case 0:
-                    vibe.vibrate(500);
-                    break;
-                case 1:
-                    vibe.vibrate(250);
-                    break;
-                case 2:
-                    vibe.vibrate(100);
-                    break;
-                case 3:
-                    vibe.vibrate(50);
-                    break;
-                case 4:
-                    break;
-                default:
-                    vibe.vibrate(100);
-                    break;
-            }
+        if (vibe == null) {
+            Log.e("Vibrator", "Can't get vibrator service.");
+            return;
+        } else if (vibeId < 0 || vibeId >= durations.length) {
+            Log.e("Vibrator", "Vibe id is out of bounds.");
+            return;
+        }
+
+        if (durations[vibeId] > 0) {
+            vibe.vibrate(durations[vibeId]);
         }
     }
 
     private void doDeleteVibration(){
+        final long[][] patterns = {{0, 300, 150, 150},
+                {0, 200, 100, 100},
+                {0, 100, 75, 75},
+                {0, 50, 50, 50},
+                {0, 0, 0, 0}};
+
         int vibeId = preferencesIO.getInt(PreferencesIO.VIBE_RADIOBUTTON_INDEX, 2);
-        long [] pattern0 = {0, 300, 150, 150};
-        long [] pattern1 = {0, 200, 100, 100};
-        long [] pattern2 = {0, 100, 75, 75};
-        long [] pattern3 = {0, 50, 50, 50};
-        //vibe.vibrate(pattern, -1);
         Vibrator vibe = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        if (vibe!= null){
-            switch (vibeId){
-                case 0:
-                    vibe.vibrate(pattern0, -1);
-                    break;
-                case 1:
-                    vibe.vibrate(pattern1, -1);
-                    break;
-                case 2:
-                    vibe.vibrate(pattern2, -1);
-                    break;
-                case 3:
-                    vibe.vibrate(pattern3, -1);
-                    break;
-                case 4:
-                    break;
-                default:
-                    vibe.vibrate(pattern2, -1);
-                    break;
-            }
+        if (vibe == null) {
+            Log.e("Vibrator", "Can't get vibrator service.");
+            return;
+        } else if (vibeId < 0 || vibeId >= patterns.length) {
+            Log.e("Vibrator", "Vibe id is out of bounds.");
+            return;
+        }
+
+        if (patterns[vibeId][1] > 0) {
+            vibe.vibrate(patterns[vibeId], 1);
         }
     }
 
     public ViewPager getPager(){
-        return this.viewPager;
-    }
-
-    private static class Numbers {
-        private int totally = 0;
-        private int daily = 0;
-        private int hourly = 0;
+        return viewPager;
     }
 
 }
