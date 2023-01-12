@@ -15,12 +15,16 @@ import com.spectator.R;
 import com.spectator.data.Day;
 import com.spectator.utils.PreferencesIO;
 
+import java.util.ArrayList;
+
 
 public class DailyInfoFragment extends Fragment {
 
     private int mode;
-    private TextView thisDay;
-    private TextView thisDay2;
+
+    private TextView thisDay[] = new TextView[2];
+    private final ArrayList<Numbers> bindedNumbers = new ArrayList<>();
+
     private VerticalViewPager viewPager;
     private boolean isFirstTime;
     private PreferencesIO preferencesIO;
@@ -53,20 +57,22 @@ public class DailyInfoFragment extends Fragment {
                 String[] labels = extras.getStringArray("labels");
                 view = inflater.inflate(R.layout.daily_info_fragment, container, false);
 
-                thisDay = view.findViewById(R.id.daily_amount);
+                thisDay[0] = view.findViewById(R.id.daily_amount);
                 TextView thisDayLabel = view.findViewById(R.id.daily_label);
 
                 thisDayLabel.setText(labels[0]);
-                thisDay.setText(String.valueOf(extras.getInt("daily")));
+
+                bindedNumbers.get(0).setDailyTextView(thisDay[0]);
             } else if (mode == Day.PRESENCE_BANDS) {
                 //Labels will be null
                 view = inflater.inflate(R.layout.joint_daily_info_fragment, container, false);
 
-                thisDay = view.findViewById(R.id.votes_counter_amount);
-                thisDay2 = view.findViewById(R.id.ribbons_counter);
+                thisDay[0] = view.findViewById(R.id.votes_counter_amount);
+                thisDay[1] = view.findViewById(R.id.ribbons_counter);
 
-                thisDay.setText(String.valueOf(extras.getInt("daily")));
-                thisDay2.setText(String.valueOf(extras.getInt("daily2")));
+                for (int i = 0; i < Integer.min(bindedNumbers.size(), thisDay.length); i++) {
+                    bindedNumbers.get(i).setDailyTextView(thisDay[i]);
+                }
             }
         }
 
@@ -83,12 +89,9 @@ public class DailyInfoFragment extends Fragment {
 
         if (isFirstTime) {
             swipeHint.setVisibility(View.VISIBLE);
-
             viewPager.addOnPageChangeListener(new VerticalViewPager.OnPageChangeListener() {
                 @Override
-                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-                }
+                public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {}
 
                 @Override
                 public void onPageSelected(int position) {
@@ -99,9 +102,7 @@ public class DailyInfoFragment extends Fragment {
                 }
 
                 @Override
-                public void onPageScrollStateChanged(int state) {
-
-                }
+                public void onPageScrollStateChanged(int state) {}
             });
         }
         else {
@@ -110,19 +111,8 @@ public class DailyInfoFragment extends Fragment {
 
     }
 
-    void setDaily(int daily, @Day.Position int position) {
-        if (mode != Day.PRESENCE_BANDS) {
-            if (thisDay != null)
-                this.thisDay.setText(String.valueOf(daily));
-        }
-        else {
-            if (thisDay != null && thisDay2 != null) {
-                if (position == 0)
-                    this.thisDay.setText(String.valueOf(daily));
-                else if (position == 1)
-                    this.thisDay2.setText(String.valueOf(daily));
-            }
-        }
+    void bindNumbers(Numbers numbers) {
+        bindedNumbers.add(numbers);
     }
 
 }

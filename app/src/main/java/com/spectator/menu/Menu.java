@@ -29,12 +29,14 @@ public class Menu extends BaseActivity {
     private TextView addNew;
     private TextView todayDate;
     private TextView electionsDay;
-    private int totallyVoters;
-    private int totallyBands;
-    private JsonIO daysJsonIO;
-    private ArrayList<Day> days;
     private LinearLayout scrollList;
     private LayoutInflater inflater;
+
+    private int totallyVoters;
+    private int totallyBands;
+
+    private JsonIO daysJsonIO;
+    private ArrayList<Day> days;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,11 +149,9 @@ public class Menu extends BaseActivity {
                 int totallyVoters = 0;
                 int totallyBands = 0;
                 for (Day day: days) {
-                    if (!printDay.getName().equals(day.getName())) {
-                        if (printDay.getYik().equals(day.getYik())) {
-                            totallyVoters += day.getVoters();
-                            totallyBands += day.getBands();
-                        }
+                    if (printDay.getYik().equals(day.getYik())) {
+                        totallyVoters += day.getVoters();
+                        totallyBands += day.getBands();
                     }
                 }
                 bundle.putInt("totalVoters", totallyVoters);

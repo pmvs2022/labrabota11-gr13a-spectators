@@ -88,9 +88,11 @@
     <string name="edit">Рэдагаваць</string>
     <string name="delete">Выдаліць</string>
     <string name="menu_hint">" Націсніце і ўтрымлівайце, каб выдаліць лічыльнік"</string>
-    <string name="copyright_2020_npavel_sudnik_nrichard_ragusski_nv1_0">v1.0\nCopyright © 2020 Павел Суднік, Рычард Рагускі.</string>
-    <string name="if_you_have_spotted_a_bug_or_you_want_to_propose_new_idea_please_contact_us_at_wintry3_gmail_com">" Калі вы знайшлі памылку або хочаце прапанаваць новую ідэю, калі ласка, звяжыцеся з намі па адрасе\nwintry3@gmail.com"</string>
+    <string name="copyright">v1.0\nCopyright © 2022 Павел Суднік, Рычард Рагускі, Ліза Раманава.</string>
+    <string name="bug_contact">" Калі вы знайшлі памылку або хочаце прапанаваць новую ідэю, калі ласка, звяжыцеся з намі па адрасе\nwintry3@gmail.com"</string>
     <string name="show_comments">Паказаць каментарыі</string>
     <string name="swipe_up_to_see_more">Правядзіце ўверх, каб убачыць больш інфармацыі</string>
     <string name="export_comments">Экспартаваць каментарыі</string>
+    <string name="send_reminder">Не забудзьцеся адправіць свае дадзеныя на сервер.</string>
+    <string name="reminder_channel_title">Напамін аб адпраўцы дадзеных</string>
 </resources>
