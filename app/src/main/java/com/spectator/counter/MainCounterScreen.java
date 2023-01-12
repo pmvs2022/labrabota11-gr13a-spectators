@@ -25,6 +25,7 @@ import com.spectator.data.Day;
 import com.spectator.data.Hour;
 import com.spectator.data.Voter;
 import com.spectator.detailedinfo.Details;
+import com.spectator.realm.Realm;
 import com.spectator.utils.DateFormatter;
 import com.spectator.utils.JsonIO;
 import com.spectator.utils.ObjectWrapperForBinder;
@@ -391,6 +392,8 @@ public class MainCounterScreen extends BaseActivity {
         records.add(newVoter);
         //Writing new voter to the end of json file
         recordsJsonIO.writeToEndOfFile(newVoter.toJSONObject());
+
+        Realm.insertVoter(newVoter);
 
         //Changing number of votes in TextViews
         dailyInfoFragment.setDaily(numbers.daily, position);
