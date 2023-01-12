@@ -1,6 +1,0 @@
-<resources>
-    <string name="realm_app_id">counter-guimd</string>
-    <string name="realm_app_url">https://realm.mongodb.com/groups/63beefefaca12e2261eccae2/apps/63bef03731aded7b3054c1cf</string>
-    <string name="realm_base_url">https://realm.mongodb.com</string>
-    <string name="realm_data_source_name">mongodb-atlas</string>
-</resources>
