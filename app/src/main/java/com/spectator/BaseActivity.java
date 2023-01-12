@@ -6,13 +6,31 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 
+import com.spectator.realm.Task;
+import com.spectator.realm.TaskStatus;
 import com.spectator.utils.PreferencesIO;
 
+import org.bson.types.ObjectId;
+
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+
+import io.realm.OrderedCollectionChangeSet;
+import io.realm.OrderedRealmCollectionChangeListener;
+import io.realm.Realm;
+import io.realm.RealmResults;
+import io.realm.mongodb.App;
+import io.realm.mongodb.AppConfiguration;
+import io.realm.mongodb.Credentials;
+import io.realm.mongodb.User;
+import io.realm.mongodb.sync.SyncConfiguration;
 
 public class BaseActivity extends AppCompatActivity {
 
@@ -24,6 +42,40 @@ public class BaseActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        Realm.init(this);
+        App app = new App(new AppConfiguration.Builder("counter-guimd")
+                .build());
+        Credentials credentials = Credentials.anonymous();
+
+        app.loginAsync(credentials, result -> {
+            if (result.isSuccess()) {
+                Log.v("QUICKSTART", "Successfully authenticated anonymously.");
+                User user = app.currentUser();
+                String partitionValue = "Counter";
+                SyncConfiguration config = new SyncConfiguration.Builder(
+                        user,
+                        partitionValue)
+                        .build();
+                Realm uiThreadRealm = Realm.getInstance(config);
+            } else {
+                Log.e("QUICKSTART", "Failed to log in. Error: " + result.getError());
+            }
+        });
+
+        /*SyncConfiguration config = new SyncConfiguration.Builder(app.currentUser(), parti)
+                .allowQueriesOnUiThread(true)
+                .allowWritesOnUiThread(true)
+                .build();
+        Realm.getInstanceAsync(config, new Realm.Callback() {
+            @Override
+            public void onSuccess(@NonNull Realm realm) {
+                Log.v(
+                        "EXAMPLE",
+                        "Successfully opened a realm with reads and writes allowed on the UI thread."
+                );
+            }
+        });*/
 
         preferencesIO = new PreferencesIO(this);
 
