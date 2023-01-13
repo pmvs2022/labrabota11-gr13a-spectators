@@ -96,4 +96,7 @@
     <string name="send_reminder">Не забудзьцеся адправіць свае дадзеныя на сервер.</string>
     <string name="reminder_channel_title">Напамін аб адпраўцы дадзеных</string>
     <string name="map">Карта</string>
+    <string name="permission_required_toast">Необходна разрешение</string>
+    <string name="permission_rationale_location">"Неабходна геалакацыя "</string>
+    <string name="location_permission_denied">Вы забаронили геалакацыю</string>
 </resources>

@@ -13,6 +13,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.DialogFragment;
 import android.widget.Toast;
 
+import com.spectator.R;
+
 /**
  * Utility class for access to runtime permissions.
  */
@@ -82,7 +84,7 @@ public abstract class PermissionUtils {
             finishActivity = getArguments().getBoolean(ARGUMENT_FINISH_ACTIVITY);
 
             return new AlertDialog.Builder(getActivity())
-                    .setMessage("R.string.location_permission_denied")
+                    .setMessage(R.string.location_permission_denied)
                     .setPositiveButton(android.R.string.ok, null)
                     .create();
         }
@@ -91,7 +93,7 @@ public abstract class PermissionUtils {
         public void onDismiss(DialogInterface dialog) {
             super.onDismiss(dialog);
             if (finishActivity) {
-                Toast.makeText(getActivity(), "R.string.permission_required_toast",
+                Toast.makeText(getActivity(), R.string.permission_required_toast,
                         Toast.LENGTH_SHORT).show();
                 getActivity().finish();
             }
@@ -140,7 +142,7 @@ public abstract class PermissionUtils {
             finishActivity = arguments.getBoolean(ARGUMENT_FINISH_ACTIVITY);
 
             return new AlertDialog.Builder(getActivity())
-                    .setMessage("R.string.permission_rationale_location")
+                    .setMessage(R.string.permission_rationale_location)
                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -161,7 +163,7 @@ public abstract class PermissionUtils {
             super.onDismiss(dialog);
             if (finishActivity) {
                 Toast.makeText(getActivity(),
-                                "R.string.permission_required_toast",
+                                R.string.permission_required_toast,
                                 Toast.LENGTH_SHORT)
                         .show();
                 getActivity().finish();
