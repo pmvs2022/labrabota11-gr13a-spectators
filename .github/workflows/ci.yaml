@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - dev
-      - ci
+      - fix/ci
 
 jobs:
   Unit-test:

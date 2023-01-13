@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - dev
-      - ci
+      - fix/ci
 
 jobs:
   assemble_ui_test_artifacts:
