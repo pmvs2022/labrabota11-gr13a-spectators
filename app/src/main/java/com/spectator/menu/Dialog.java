@@ -78,17 +78,17 @@ public class Dialog extends BaseActivity {
 
                 boolean canPass = true;
                 if (editName.getText().toString().trim().equals("")) {
-                    Toast toast = Toast.makeText(getApplicationContext(), R.string.enter_name, Toast.LENGTH_SHORT);
+                    Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.enter_name), Toast.LENGTH_SHORT);
                     toast.show();
                     canPass = false;
                 }
                 else if (editYikNumber.getText().toString().trim().equals("")) {
-                    Toast toast = Toast.makeText(getApplicationContext(), R.string.enter_pec, Toast.LENGTH_SHORT);
+                    Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.enter_pec), Toast.LENGTH_SHORT);
                     toast.show();
                     canPass = false;
                 }
                 else if (!checkPresence.isChecked() && !checkBands.isChecked()) {
-                    Toast toast = Toast.makeText(getApplicationContext(), R.string.choose_mode, Toast.LENGTH_SHORT);
+                    Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.choose_mode), Toast.LENGTH_SHORT);
                     toast.show();
                     canPass = false;
                 }
@@ -104,7 +104,7 @@ public class Dialog extends BaseActivity {
                 for (String fileName : fileNames) {
                     str = editName.getText().toString().trim() + suffix +  getString(R.string.json_postfix);
                     if (str.equals(fileName)) {
-                        Toast toast = Toast.makeText(getApplicationContext(), R.string.day_exists, Toast.LENGTH_SHORT);
+                        Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.day_exists), Toast.LENGTH_SHORT);
                         toast.show();
                         canPass = false;
                         break;
