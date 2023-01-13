@@ -14,6 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.spectator.BaseActivity;
 import com.spectator.R;
 import com.spectator.data.Voter;
+import com.spectator.map.MapActivity;
 import com.spectator.utils.PreferencesIO;
 
 import org.bson.types.ObjectId;
@@ -32,6 +33,7 @@ public class Start extends BaseActivity {
 
     public static App app;
     private TextView start;
+    private TextView map;
     private TextView settings;
     private TextView aboutUs;
     private TextView appName;
@@ -44,6 +46,7 @@ public class Start extends BaseActivity {
         Realm.init(this);
 
         start = (TextView) findViewById(R.id.start);
+        map = (TextView) findViewById(R.id.map);
         settings = (TextView) findViewById(R.id.settings);
         aboutUs = (TextView) findViewById(R.id.about_us);
         appName = (TextView) findViewById(R.id.app_name);
@@ -58,6 +61,14 @@ public class Start extends BaseActivity {
                 startActivity(intentStart);
             }
 
+        });
+
+        map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intentMap = new Intent(getApplicationContext(), MapActivity.class);
+                startActivity(intentMap);
+            }
         });
 
         settings.setOnClickListener(new View.OnClickListener() {

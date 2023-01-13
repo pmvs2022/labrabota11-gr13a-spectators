@@ -11,6 +11,8 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.MAPS_RECEIVE"/>
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
 
     <application
         android:name=".Spectator"
@@ -20,7 +22,15 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyBl0aBVwQZppnHxTXk_nXj6WzV-QOG_d4Y" />
+        <uses-library
+            android:name="org.apache.http.legacy"
+            android:required="false" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.spectator.fileProvider"
@@ -39,6 +49,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".map.MapActivity" android:screenOrientation="fullSensor" />
         <activity android:name=".menu.Settings" android:screenOrientation="fullSensor" />
         <activity android:name=".menu.AboutUs" android:screenOrientation="fullSensor" />
         <activity android:name=".counter.MainCounterScreen" android:screenOrientation="fullSensor" />

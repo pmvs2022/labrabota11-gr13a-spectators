@@ -45,6 +45,21 @@
             android:textSize="36sp" />
 
         <TextView
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/ripple"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="@string/map"
+            android:textColor="@color/white"
+            android:textSize="36sp" />
+
+        <TextView
             android:id="@+id/settings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -73,6 +88,7 @@
             android:text="@string/about_us"
             android:textColor="@color/white"
             android:textSize="36sp" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
