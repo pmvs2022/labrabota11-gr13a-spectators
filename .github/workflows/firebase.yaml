@@ -5,7 +5,8 @@ on:
     branches:
       - main
       - dev
-      - fix/ci
+      - fix/*
+      - feature/*
 
 jobs:
   assemble_ui_test_artifacts:
@@ -36,6 +37,7 @@ jobs:
           path: app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 
   run_ui_tests_on_firebase:
+    name: Run UI tests on Firebase
     runs-on: ubuntu-latest
     needs: assemble_ui_test_artifacts
     steps:
