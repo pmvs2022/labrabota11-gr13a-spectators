@@ -95,4 +95,5 @@
     <string name="export_comments">Экспартаваць каментарыі</string>
     <string name="send_reminder">Не забудзьцеся адправіць свае дадзеныя на сервер.</string>
     <string name="reminder_channel_title">Напамін аб адпраўцы дадзеных</string>
+    <string name="map">Карта</string>
 </resources>

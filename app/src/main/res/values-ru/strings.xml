@@ -95,4 +95,5 @@
     <string name="export_comments">Экспортировать комментарии</string>
     <string name="send_reminder">Не забывай отправлять свои данные на сервер.</string>
     <string name="reminder_channel_title">Напоминание об отправке данных</string>
+    <string name="map">Карта</string>
 </resources>
